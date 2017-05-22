@@ -1,2 +1,4 @@
 data/
-.idea/
+smalldata/
+.DS_Store
+out/

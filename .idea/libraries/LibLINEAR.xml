@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="LibLINEAR">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/wekafiles/packages/LibLINEAR/LibLINEAR.jar!/" />
+      <root url="jar://$USER_HOME$/wekafiles/packages/LibLINEAR/lib/liblinear-java-1.96-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
