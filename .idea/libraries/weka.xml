@@ -2,6 +2,7 @@
   <library name="weka">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../weka-3-8-1/weka.jar!/" />
+      <root url="jar://C:/Program Files/Weka-3-8/weka.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
