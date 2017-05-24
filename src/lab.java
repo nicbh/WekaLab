@@ -11,18 +11,21 @@ import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.functions.LibSVM;
 import weka.classifiers.functions.LibLINEAR;
 import weka.classifiers.functions.MultilayerPerceptron;
-import weka.classifiers.functions.Dl4jMlpClassifier;
 import weka.classifiers.meta.Bagging;
-import weka.core.WekaPackageManager;
+import weka.core.*;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.classifiers.lazy.IBk;
-import weka.core.Instances;
 import weka.classifiers.trees.J48;
+import weka.filters.*;
 import weka.classifiers.Evaluation;
+import weka.core.neighboursearch.*;
+import weka.filters.unsupervised.attribute.RandomProjection;
+import weka.filters.unsupervised.attribute.RandomSubset;
 
 public class lab {
+
     public static void main(String[] args) {
-        String filepath = "data";
+        String filepath = "smalldata";
         String[] files = null;
 
         File file = new File(filepath);
@@ -45,10 +48,10 @@ public class lab {
         String[] models = {
 //                "weka.classifiers.trees.J48",
 //                "weka.classifiers.bayes.NaiveBayes",
-//                "weka.classifiers.lazy.IBk",
-                "weka.classifiers.functions.LibLINEAR",
+                "weka.classifiers.lazy.IBk"
+//                "weka.classifiers.functions.LibLINEAR",
 //                "weka.classifiers.functions.LibSVM",
-                "weka.classifiers.functions.MultilayerPerceptron"
+//                "weka.classifiers.functions.MultilayerPerceptron"
         };
 
         String outputpath = "output/";
@@ -56,8 +59,9 @@ public class lab {
         for (int iter = 0; iter < models.length && k < 10; iter++) {
             String modelname = models[iter];
             try {
+                String newstr = "7.20randomsubset";
                 String name = modelname.substring(modelname.lastIndexOf('.') + 1);
-                FileWriter output = new FileWriter(new File(outputpath + name + ".txt"));
+                FileWriter output = new FileWriter(new File(outputpath + name + newstr + ".txt"));
 //                System.out.println("-------------------------------------");
                 for (int j = 0; j < files.length && k < 10; j++) {
                     String outputstr = "-------------------------------------\n";
@@ -70,10 +74,20 @@ public class lab {
                             data.setClassIndex(data.numAttributes() - 1);
                         int class_num = data.numClasses();
 
-                        //WekaPackageManager.loadPackages( false, true, false );
-                        Class javaclass = Class.forName(modelname);
-                        Classifier classifier = (Classifier) javaclass.newInstance();
+//                        Class javaclass = Class.forName(modelname);
+//                        Classifier classifier = (Classifier) javaclass.newInstance();
+                        IBk classifier = new IBk(7);
+                        classifier.setCrossValidate(true);
+                        try {
+                            FilteredDistance df = new FilteredDistance();
+                            Filter filter = new RandomSubset();
+                            df.setFilter(filter);
+                            NearestNeighbourSearch search = new LinearNNSearch();
+                            search.setDistanceFunction(df);
+                            classifier.setNearestNeighbourSearchAlgorithm(search);
+                        } catch (Exception ex) {
 
+                        }
                         long start = System.currentTimeMillis();
                         Evaluation eval = new Evaluation(data);
                         eval.crossValidateModel(classifier, data, 10, new Random(1));
@@ -112,7 +126,7 @@ public class lab {
 //                            System.out.println("ROC area for class " + data.classAttribute().value(i) + " is: " + eval.areaUnderROC(i));
                             outputstr += "ROC area for class " + data.classAttribute().value(i) + " is: " + eval.areaUnderROC(i) + "\n";
                         }
-//                        System.out.println();
+                        System.out.println();
                         outputstr += "\n";
                     } catch (Exception ex) {
                         outputstr += ex.toString();
@@ -129,6 +143,49 @@ public class lab {
                 iter--;
                 k++;
             }
+        }
+    }
+
+    static class myIBk extends IBk implements Randomizable {
+        int seed;
+        Random m_random;
+
+        myIBk(int n) {
+            super(n);
+            this.setCrossValidate(true);
+        }
+
+        @Override
+        public int getSeed() {
+            return seed;
+        }
+
+        @Override
+        public void setSeed(int i) {
+            m_random = new Random(i);
+            double random = m_random.nextDouble();
+            try {
+                FilteredDistance df = new FilteredDistance();
+//                if (random < 0.1)
+//                    df.setDistance(new ManhattanDistance());
+//                else if (random < 0.9)
+//                    df.setDistance(new EuclideanDistance());
+//                else if (random < 0.95)
+//                    df.setDistance(new ChebyshevDistance());
+//                else {
+//                    MinkowskiDistance md = new MinkowskiDistance();
+//                    md.setOrder(1 / (m_random.nextDouble() * 100 + 0.000001));
+//                    df.setDistance(md);
+//                }
+                Filter filter = new RandomSubset();
+                df.setFilter(filter);
+                NearestNeighbourSearch search = new LinearNNSearch();
+                this.setNearestNeighbourSearchAlgorithm(search);
+                search.setDistanceFunction(df);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            seed = i;
         }
     }
 }
